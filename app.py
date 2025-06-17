@@ -7,62 +7,75 @@ Original file is located at
     https://colab.research.google.com/drive/1XmhHp9aR_RI-ivXojj0x9khIp4aki6j4
 """
 
-
-
 import streamlit as st
-import pandas as pd
 import numpy as np
-import pickle
+import joblib
 
-# Load the model
-def load_model():
-    with open('stu.pkl', 'rb') as f:
-        model = pickle.load(f)
-    return model
+# Load the trained model
+model = joblib.load("stu.pkl")
 
-model = load_model()
+# Set page config
+st.set_page_config(
+    page_title="🎓 Student Performance Predictor",
+    page_icon="📈",
+    layout="centered"
+)
 
-# Page configuration
-st.set_page_config(page_title="Student Performance Predictor", layout="centered", page_icon="📊")
-
-# Header
+# Custom CSS for polished look
 st.markdown("""
-    <h1 style='text-align: center; color: #4B8BBE;'>🎓 Student Performance Predictor</h1>
-    <p style='text-align: center; color: grey;'>Enter the student's academic details to predict their performance index.</p>
-    <hr style='border: 1px solid #f0f0f0;'>
+    <style>
+        .main {background-color: #f5f7fa;}
+        .title {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1f4e79;
+            margin-bottom: 20px;
+        }
+        .subtitle {
+            font-size: 20px;
+            font-weight: 400;
+            color: #3d3d3d;
+        }
+        .stButton>button {
+            background-color: #1f4e79;
+            color: white;
+            border-radius: 8px;
+            padding: 10px 20px;
+        }
+        .stButton>button:hover {
+            background-color: #155d8b;
+        }
+    </style>
 """, unsafe_allow_html=True)
 
-# Input layout
+# Title and subtitle
+st.markdown('<div class="title">🎓 Student Performance Predictor</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Predict your academic performance based on key factors</div><br>', unsafe_allow_html=True)
+
+# Two-column layout
 col1, col2 = st.columns(2)
 
 with col1:
-    hours_studied = st.number_input("📘 Hours Studied", min_value=0.0, step=0.5)
+    HS = st.slider("📚 Hours Studied per Day", 0, 12, 6)
+    PS = st.slider("📝 Previous Scores", 0, 100, 70)
+    EA = st.radio("🏅 Extracurricular Activities", ['Yes', 'No'], horizontal=True)
 
 with col2:
-    prev_scores = st.number_input("📊 Previous Scores", min_value=0.0, step=1.0)
+    SH = st.slider("😴 Sleep Hours", 0, 12, 7)
+    SQ = st.slider("📄 Sample Question Papers Practiced", 0, 10, 3)
 
-with col1:
-    extracurricular = st.selectbox("🏀 Extracurricular Activities", ["Yes", "No"])
-    ex = 1 if extracurricular.lower() == "yes" else 0
+# Convert EA to numeric
+EA_val = 1 if EA == 'Yes' else 0
 
-with col2:
-    sleep_hours = st.number_input("😴 Sleep Hours", min_value=0.0, step=0.5)
-
-with col1:
-    sample_questions = st.number_input("📝 Sample Question Papers Practiced", min_value=0.0, step=1.0)
-
-# Predict Button
-if st.button("🔍 Predict Performance"):
-    input_data = np.array([[hours_studied, prev_scores, sleep_hours, ex, sample_questions]])
-    prediction = model.predict(input_data)
-
-    st.success(f"🎯 Predicted Performance Index: **{prediction[0]:.2f}**")
-
-    st.markdown("<hr style='border: 1px solid #f0f0f0;'>", unsafe_allow_html=True)
+# Center the predict button
+st.markdown("<br>", unsafe_allow_html=True)
+centered_button = st.columns([1, 2, 1])[1]
+with centered_button:
+    if st.button("🚀 Predict Performance Index"):
+        input_data = np.array([[HS, PS, SH, EA_val, SQ]])
+        prediction = model.predict(input_data)
+        st.success(f"🎯 Your Predicted Performance Index is: **{prediction[0]:.2f}**")
 
 # Footer
-st.markdown("""
-    <div style='text-align: center; color: grey; font-size: 14px; margin-top: 40px;'>
-        Developed by <strong>konjam_kadhalxx</strong> | Powered by Linear Regression 🔗
-    </div>
-""", unsafe_allow_html=True)
+st.markdown("<br><hr style='border: 1px solid #ccc'>", unsafe_allow_html=True)
+st.markdown("<div style='text-align:center;'>Made with ❤️ using Streamlit</div>", unsafe_allow_html=True)
